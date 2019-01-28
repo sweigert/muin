@@ -16,6 +16,9 @@
 
 # devtools::install_github("rladies/meetupr")
 library(meetupr)
+library(plyr)
+library(tidyverse)
+library(lubridate)
 
 # Obtain your key from <https://secure.meetup.com/meetup_api/key/>
 KEY = "<KEY_TO_YOUR_MEETUP>"
@@ -24,19 +27,11 @@ urlname <- "<URL_TO_YOUR_MEETUP>"
 events <- get_events(urlname, c("past", "upcoming"), api_key = KEY)
 members <- get_members(urlname, api_key = KEY)
 
-library(ggplot2)
-library(ggstance)
-library(dplyr)
-library(tidyr)
-library(plyr)
-library(lubridate)
-
-
 #### Population structure ####
 ggplot(data = members,
        aes(
          x = format(as.Date(joined), "%Y")
-       )) +
+      )) +
   geom_bar() +
   scale_y_continuous("Number of members") +
   scale_x_discrete("Year joined meetup.com") +
@@ -55,16 +50,16 @@ senior_meetup_user$joined
 
 #### Member growth over time ####
 df_ev <- ldply(events$resource, function(x) data.frame(name = c(x$name, x$name, "Void"), ts = c(x$created/1000, x$time/1000, (x$time/1000 + 24)))) %>%
-  mutate(ts = as_date(as_datetime(ts))) %>%
-  complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
-  fill(name)
+         mutate(ts = as_date(as_datetime(ts))) %>%
+         complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
+         fill(name)
 
 df <- ldply(members$resource, function(x) data.frame(id = x$id, ts = x$group_profile$created/1000)) %>%
-  mutate(cnt = row_number(ts)) %>%
-  mutate(ts = as_date(as_datetime(ts))) %>%
-  complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
-  arrange(ts) %>%
-  fill(id, cnt)
+      mutate(cnt = row_number(ts)) %>%
+      mutate(ts = as_date(as_datetime(ts))) %>%
+      complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
+      arrange(ts) %>%
+      fill(id, cnt)
 
 df <- left_join(df, df_ev, by = c("ts"))
 df[is.na(df$name), ]$name <- "Void"
