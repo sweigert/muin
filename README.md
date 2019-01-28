@@ -11,6 +11,7 @@ First, **meetupr** does not parse all the fields in the response into a datafram
 Second, the event data is a different dataframe than the member data.
 
 **Member data:**
+
 | date | member-count |
 | --- | --- |
 | 2018-01-01 | 1 |
@@ -18,11 +19,13 @@ Second, the event data is a different dataframe than the member data.
 | 2018-02-01 | 10 |
 
 **Event data:**
+
 | date | event-name |
 | --- | --- |
 | 2018-02-01 | Our first meetup |
 
 In order to plot them nicely with ```ggplot``` it is useful to have everything in a single dataframe of the form:
+
 | date | member-count | meetup-name |
 | --- | --- | --- |
 | 2018-01-01 | 1 | void |
