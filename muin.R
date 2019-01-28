@@ -27,6 +27,7 @@ urlname <- "<URL_TO_YOUR_MEETUP>"
 events <- get_events(urlname, c("past", "upcoming"), api_key = KEY)
 members <- get_members(urlname, api_key = KEY)
 
+
 #### Population structure ####
 ggplot(data = members,
        aes(
@@ -34,11 +35,11 @@ ggplot(data = members,
       )) +
   geom_bar() +
   scale_y_continuous("Number of members") +
-  scale_x_discrete("Year joined meetup.com") +
-  ggtitle("#MLDD Population Structure") +
+  scale_x_discrete() +
   theme_minimal() +
   theme(
-    panel.grid.major.x = element_blank()
+    panel.grid.major.x = element_blank(),
+    axis.title.x = element_blank()
   )
 
 
@@ -64,6 +65,7 @@ df <- ldply(members$resource, function(x) data.frame(id = x$id, ts = x$group_pro
 df <- left_join(df, df_ev, by = c("ts"))
 df[is.na(df$name), ]$name <- "Void"
 
+
 ggplot(data = df,
        aes(
          y = cnt,
@@ -74,24 +76,24 @@ ggplot(data = df,
          alpha = (name == "Void"),
          size = (name == "Void")
        )) +
-  stat_smooth(aes(group = 1), method = "lm", fill = "red", colour = "red", alpha = 1) +
-  geom_point(shape = 21) +
-  scale_x_date("Date") +
+  #stat_smooth(aes(group = 1), method = "lm", fill = "red", colour = "red", alpha = 1) +
+  geom_point(shape = 21, fill = "white") +
+  scale_x_date() +
   scale_y_continuous("#Members") +
   scale_color_brewer(type = "qual", palette = "Dark2") +
   scale_fill_brewer(type = "qual", palette = "Dark2") +
   scale_alpha_manual(values = c(0.75, 0.25)) +
-  scale_size_manual(values = c(2, 0.75)) +
+  scale_size_manual(values = c(1.75, 0.75)) +
   guides(alpha = FALSE, size = FALSE) +
-  ggtitle("#MLDD Growth") +
   theme_minimal() +
   theme(
     legend.position = "bottom",
     legend.text = element_text(size = 8),
-    legend.title = element_blank()
+    legend.title = element_blank(),
+    axis.title.x = element_blank()
   )
 
-#### Model growth ####
+geom#### Model growth ####
 # create generalized linear model of the number of #mldd members as a function of time
 mdl <- lm(cnt~as_datetime(ts), data = df)
 predict(mdl, data.frame(ts = as_datetime("2020-01-29")))
@@ -110,13 +112,13 @@ ggplot(data = members %>% group_by(city) %>% summarise(n_obs = n()) %>% arrange(
        )) +
   geom_col() +
   geom_text(hjust = "right", nudge_y = 20) +
-  scale_x_discrete("") +
-  scale_y_continuous("") +
+  scale_x_discrete() +
+  scale_y_continuous() +
   coord_flip() +
-  ggtitle("Top 10 cities by number of #MLDD members") +
   theme_minimal() +
   theme(panel.grid = element_blank(),
-        axis.text.x = element_blank())
+        axis.text.x = element_blank(),
+        axis.title = element_blank())
 
 
 #### Member Maps ####
@@ -127,7 +129,6 @@ ggplot() +
   geom_path(data = world, aes(x = long, y = lat, group = group), alpha = 0.5, size = 0.01) +
   geom_point(data = members, aes(x = lon, y = lat), colour = "purple", fill = "purple", alpha = 0.66, size = 2, shape = 21) +
   coord_map(xlim = c(-180, 180)) +
-  ggtitle("#MLDD Members") +
   theme_minimal() +
   theme(panel.border =  element_blank(),
         axis.text = element_blank(),
@@ -140,7 +141,6 @@ ggplot() +
   geom_path(data = zoom, aes(x = long, y = lat, group = group), alpha = 0.5, size = 0.01) +
   geom_point(data = members, aes(x = lon, y = lat), colour = "purple", fill = "purple", alpha = 0.66, size = 2, shape = 21) +
   coord_map(xlim = c(-10, 25), ylim = c(40, 60)) +
-  ggtitle("#MLDD Members") +
   theme_minimal() +
   theme(panel.border =  element_blank(),
         axis.text = element_blank(),
