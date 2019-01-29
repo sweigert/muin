@@ -57,7 +57,7 @@ the latter is mitigated with ```fill```.
 ```R
 df_ev <- ldply(events$resource,
                function(x) data.frame(name = c(x$name, x$name, "Void"),
-                                      ts = c(x$created/1000, x$time/1000, (x$time/1000 + 24)))) %>%
+                                      ts = c(x$created/1000, x$time/1000, (x$time/1000 + 24*60*60)))) %>%
          mutate(ts = as_date(as_datetime(ts))) %>%
          complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
          fill(name)
