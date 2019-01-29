@@ -61,7 +61,7 @@ df_ev <- ldply(events$resource, function(x) data.frame(name = c(x$name, x$name, 
          complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
          fill(name)
 
-# create dataframe from lost similar to the one above
+# create dataframe from list similar to the one above
 # since every new member is it's own row (id is the member's meetup.com id), the row_count is the total count of members.
 # the use the same trick with complete and fill to add the missing dates
 df <- ldply(members$resource, function(x) data.frame(id = x$id, ts = x$group_profile$created/1000)) %>%

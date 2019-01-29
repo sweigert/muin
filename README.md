@@ -32,33 +32,46 @@ In order to plot them nicely with ```ggplot``` it is useful to have everything i
 | ... | ... | void |
 | 2018-02-01 | 10 | Our first meetup |
 
-However, joining timeseries is a bit harder than trivial: We don't have a member-count for each day a meetup existed (there are only rows for dates where new members joined) and thus, joining the two timeseries by date won't work. Luckily ```tidyverse``` has two neat functions: ```complete``` which completes missing rows in a column with a given sequence and ```fill``` which fills ```NA``` values with the previous row's value. Here is the full code:
+However, joining timeseries is a bit harder than trivial: We don't have a member-count for each day a meetup existed (there are only rows for dates where new members joined) and thus, joining the two timeseries by date won't work. Luckily ```tidyverse``` has two neat functions: ```complete``` which completes missing rows in a column with a given sequence and ```fill``` which fills ```NA``` values with the previous row's value. Here is how it works in practice.
+
+### Events dataframe
+For each meetup, take the time it was announced ```x$created``` and the time it happened ```x$time``` and put them in two seperate rows with the same name.
+Finally, add a third row, one day later, with the name "void" which marks the time period between two meetups.
+Then, use ```complete``` to fill the gaps in the date-column.
+The new rows will have ```NA``` in the name column.
+the latter is mitigated with ```fill```.
 ```R
-#### Member growth over time ####
-# for each meetup, take the time it was announced (x$created) and the time it happened (x$time) and
-# put them in two seperate rows with the same name
-# finally, add a third row, one day later, with the name "void" which marks the time period between two meetups
-# then, use "complete" to fill the gaps in the date-column. the new rows will have "NA" in the name column.
-# the latter is mitigated with fill
-df_ev <- ldply(events$resource, function(x) data.frame(name = c(x$name, x$name, "Void"), ts = c(x$created/1000, x$time/1000, (x$time/1000 + 24)))) %>%
+df_ev <- ldply(events$resource,
+               function(x) data.frame(name = c(x$name, x$name, "Void"),
+                                      ts = c(x$created/1000, x$time/1000, (x$time/1000 + 24)))) %>%
          mutate(ts = as_date(as_datetime(ts))) %>%
          complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
          fill(name)
+```
 
-# create dataframe from lost similar to the one above
-# since every new member is it's own row (id is the member's meetup.com id), the row_count is the total count of members.
-# the use the same trick with complete and fill to add the missing dates
+### Members dataframe
+The members dataframe works more or less like the events dataframe.
+First, create dataframe from the _resource_ list similar to how it was done with the events.
+Since every new member is it's own row (```id``` is the member's meetup.com id), the ```row_count``` is the total count of members.
+Then use the same trick with ```complete``` and ```fill``` to add the missing dates.
+```R
 df <- ldply(members$resource, function(x) data.frame(id = x$id, ts = x$group_profile$created/1000)) %>%
       mutate(cnt = row_number(ts)) %>%
       mutate(ts = as_date(as_datetime(ts))) %>%
       complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
       arrange(ts) %>%
       fill(id, cnt)
+```
 
-# now we have two dataframes with the dt column filled for every day since the start of the meetup
-# join the members dataframe with the events dataframe on the date column
+### Joining the two
+Now we have two dataframes with their ```dt``` column filled for every day since the start of the meetup.
+With that, it's now possible to join the members dataframe with the events dataframe on the dt column.
+Finally, since we used the ```min``` and ```max``` of the events dataframe to complete the dt column, it might happen that the members dataframe contains dates _before_ the events dataframe.
+In other words: People joined your meetup before you scheduled your first event.
+That is why we need to replace those early dates name column with "Void" - our keyword for dates between scheduled events.
+
+```R
 df <- left_join(df, df_ev, by = c("ts"))
-# you'll need that if people joined your meetup before the first event was scheduled
 df[is.na(df$name), ]$name <- "Void"
 ```
 
