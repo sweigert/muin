@@ -28,6 +28,7 @@ events <- get_events(urlname, c("past", "upcoming"), api_key = KEY)
 members <- get_members(urlname, api_key = KEY)
 
 
+
 #### Population structure ####
 ggplot(data = members,
        aes(
@@ -50,11 +51,19 @@ senior_meetup_user$joined
 
 
 #### Member growth over time ####
+# for each meetup, take the time it was announced (x$created) and the time it happened (x$time) and
+# put them in two seperate rows with the same name
+# finally, add a third row, one day later, with the name "void" which marks the time period between two meetups
+# then, use "complete" to fill the gaps in the date-column. the new rows will have "NA" in the name column.
+# the latter is mitigated with fill
 df_ev <- ldply(events$resource, function(x) data.frame(name = c(x$name, x$name, "Void"), ts = c(x$created/1000, x$time/1000, (x$time/1000 + 24)))) %>%
          mutate(ts = as_date(as_datetime(ts))) %>%
          complete(ts = seq.Date(from = min(ts), to = max(ts), by = "day")) %>%
          fill(name)
 
+# create dataframe from lost similar to the one above
+# since every new member is it's own row (id is the member's meetup.com id), the row_count is the total count of members.
+# the use the same trick with complete and fill to add the missing dates
 df <- ldply(members$resource, function(x) data.frame(id = x$id, ts = x$group_profile$created/1000)) %>%
       mutate(cnt = row_number(ts)) %>%
       mutate(ts = as_date(as_datetime(ts))) %>%
@@ -62,7 +71,10 @@ df <- ldply(members$resource, function(x) data.frame(id = x$id, ts = x$group_pro
       arrange(ts) %>%
       fill(id, cnt)
 
+# now we have two dataframes with the dt column filled for every day since the start of the meetup
+# join the members dataframe with the events dataframe on the date column
 df <- left_join(df, df_ev, by = c("ts"))
+# you'll need that if people joined your meetup before the first event was scheduled
 df[is.na(df$name), ]$name <- "Void"
 
 
