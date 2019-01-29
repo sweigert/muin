@@ -88,7 +88,6 @@ ggplot(data = df,
          alpha = (name == "Void"),
          size = (name == "Void")
        )) +
-  #stat_smooth(aes(group = 1), method = "lm", fill = "red", colour = "red", alpha = 1) +
   geom_point(shape = 21, fill = "white") +
   scale_x_date() +
   scale_y_continuous("#Members") +
