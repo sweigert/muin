@@ -100,7 +100,7 @@ Here are all the plots, generated with [muin.R](muin.R) for a meetup that I am c
 ### Growth
 
 This plot shows the number of members over time. Small points correspond to dates where no meetup was announced (hence, the name "void").
-Contrary, the bigger points have a different color for each meetup and start with the announcement of the meetup and with the meetup actually taking place. 
+Contrary, the bigger points have a different color for each meetup and start with the announcement of the meetup and end with the meetup actually taking place.
 ![growth](mldd/growth.png)
 
 ### Population Structure
