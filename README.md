@@ -95,6 +95,8 @@ df[is.na(df$name), ]$name <- "Void"
 
 ## Example Plots for Machine Learning Dresden (MLDD)
 
+<img align="right" width="150" height="150" src="mldd/logo.png">
+
 Here are all the plots, generated with [muin.R](muin.R) for a meetup that I am co-organizing: [MLDD](https://www.meetup.com/MLDD-Machine-Learning-Dresden/).
 
 ### Growth
